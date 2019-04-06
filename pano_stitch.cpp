@@ -50,11 +50,11 @@ int main(int argc, char **argv) {
     Mat img, pano;
     vector<Mat> images;
 
-    //while (video.read(img)) {
-    for (int i = 0; i < 80; i++) {
+    while (video.read(img)) {
+    //for (int i = 0; i < 80; i++) {
         video.read(img);
         images.emplace_back(img);
-        showImage("img", img, 33);
+        showImage("img", img, 3);
     }
 
     auto retval = stitcher->stitch(images, pano);
