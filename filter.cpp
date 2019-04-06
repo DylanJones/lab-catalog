@@ -54,13 +54,20 @@ int main(int argc, char **argv) {
     if (argc > 3) {
         outFile = argv[3];
     }
+
     cv::VideoCapture video(filename); // file
-    cv::VideoWriter out(outFile, video.get(cv::CAP_PROP_FOURCC), 24,
-                        cv::Size(video.get(cv::CAP_PROP_FRAME_WIDTH), video.get(cv::CAP_PROP_FRAME_HEIGHT)));
+    cv::VideoWriter out;
 
     Mat img, distorted;
 
     while (video.read(img)) {
+        if (!out.isOpened()) {
+            //auto prop = cv::VideoWriter::fourcc('X', '2', '6', '4');
+            //auto prop = cv::VideoWriter::fourcc('X', 'V', 'I', 'D');
+            //auto prop = cv::VideoWriter::fourcc('m', 'p', '4', 'v');
+            auto prop = cv::VideoWriter::fourcc('m', 'j', 'p', 'g');
+            out.open(outFile, prop, 30, cv::Size(img.size[1], img.size[0]));
+        }
         Mat grayscale;
         cv::cvtColor(img, grayscale, cv::COLOR_BGR2GRAY);
         cv::Laplacian(grayscale, distorted, CV_64F);
