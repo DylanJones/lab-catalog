@@ -56,16 +56,16 @@ int main(int argc, char **argv) {
     Mat undistorted, distorted, grayscale;
 
     while (video.read(undistorted)) {
-        //cv::resize(undistorted, undistorted, cv::Size(1920, 1080));
+        cv::resize(undistorted, undistorted, cv::Size(960, 540));
         // convert to grayscale for better detection
         cv::cvtColor(undistorted, grayscale, cv::COLOR_BGR2GRAY);
         // edge detect
         Mat edges, thresh, denoised;
-        cv::Canny(undistorted, edges, 150, 200, 3);
+        cv::Canny(undistorted, edges, 10, 200, 3);
         showImage("Canny", edges, 1);
         // cv::adaptiveThreshold(grayscale, thresh, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY_INV, 11, 15);
-        // cv::threshold(grayscale, thresh, 100, 255, cv::THRESH_BINARY_INV);
-        // showImage("Thresh", thresh, 1);
+        cv::threshold(undistorted, thresh, 100, 255, cv::THRESH_BINARY_INV);
+        showImage("Thresh", thresh, 1);
         // denoise
         // this doesn't work at all
         // cv::fastNlMeansDenoising(thresh, denoised, 9);
@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
         // showImage("Denoised", denoised, 1);
         // find lines
         vector<cv::Vec2f> lines;
-        cv::HoughLines(edges, lines, 1, CV_PI/180, 1550, 0, 0 );
+        cv::HoughLines(edges, lines, 1, CV_PI/180, 350, 0, 0 );
         // draw lines
         for(auto line : lines) {
             float rho = line[0], theta = line[1];
@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
             cv::line(undistorted, pt1, pt2, cv::Scalar(0,0,255), 3, cv::LINE_AA);
         }
         cout << lines.size() << " lines" << endl;
-        showImage("Grayscale", undistorted, 0);
+        showImage("Lines", undistorted, 0);
     }
     return 0;
 }
