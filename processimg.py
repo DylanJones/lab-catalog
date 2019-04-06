@@ -29,6 +29,12 @@ contours = np.asarray(out)
 
 cv2.drawContours(img, contours, -1, (0, 255, 0), 3)
 
+for x in contours:
+    moments = cv2.moments(c)
+    print(moments['m00'])
+#    print(f"{int(moments['m10']/moments['m00'])} by {int(moments['m01']/moments['m00'])}")
+
+
 disp_scaled("original", img)
 #disp_scaled("threshold", thresh)
 
