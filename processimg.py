@@ -3,6 +3,12 @@
 import numpy as np
 import cv2
 from PIL import Image
+import io
+import os
+from google.cloud import vision
+from google.cloud.vision import types
+
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "/home/alexander/Downloads/lab-catalog.json"
 
 def disp_scaled(name, image, delay=0):
     cv2.imshow(name, cv2.resize(image, None, fx=0.5, fy=0.5, interpolation = cv2.INTER_AREA))
@@ -36,18 +42,30 @@ contours = np.asarray(out)
 
 
 
-############################### DESIGNED FOR ROTATED IMAGES; CORRECT LATER
+############################### DESIGNED FOR ROTATED IMAGES; CORRECT LATER -> OR NOT
 size = (100, 160)
 hsize = (50, 80)
 coords = {}
 cropable = Image.open(fil)
+
+################## INITIALIZE DA GOOGLE
+client = vision.ImageAnnotatorClient()
+file_name = os.path.join(os.path.dirname(__file__), 'text1.png')
+
 for i in range(len(contours)):
     mts = moments[i]
     cx = int(mts['m10']/mts['m00'])
     cy = int(mts['m01']/mts['m00'])
     if i == 10:
         cropable.crop((cx - hsize[0], cy - hsize[1], cx + hsize[0], cy + hsize[1])).save("text1.png")
-        go = False
+        with io.open(file_name, 'rb') as image_file:
+            content = image_file.read()
+        image_google = types.Image(content=content)
+        response = client.text_detection(image=image)
+        text = response.text_annotations[0].description
+        text = text.strip().upper().replace(' ', '')
+        coords[text] = {'x1': cx - hsize[0], 'y1': cy - hsize[1], 'x2': cx + hsize[0], 'y2': cy + hsize[1]}
+
 
 
 
