@@ -47,49 +47,72 @@ auto getDist(const cv::Point3f &a, const cv::Point3f &b) {
 
 // THIS ONE WORKS!!!!!!
 int main(int argc, char **argv) {
-    std::string filename("bell.mp4");
+    std::string filename("filtered.avi");
     if (argc > 1) {
         filename = argv[1];
     }
     cv::VideoCapture video(filename); // file
 
-    Mat undistorted, distorted, grayscale;
+    Mat img, distorted, grayscale;
 
-    while (video.read(undistorted)) {
-        cv::resize(undistorted, undistorted, cv::Size(960, 540));
+    while (video.read(img)) {
+        //cv::resize(img, img, cv::Size(960, 540));
         // convert to grayscale for better detection
-        cv::cvtColor(undistorted, grayscale, cv::COLOR_BGR2GRAY);
+        cv::cvtColor(img, grayscale, cv::COLOR_BGR2GRAY);
         // edge detect
-        Mat edges, thresh, denoised;
-        cv::Canny(undistorted, edges, 10, 200, 3);
-        showImage("Canny", edges, 1);
-        // cv::adaptiveThreshold(grayscale, thresh, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY_INV, 11, 15);
-        cv::threshold(undistorted, thresh, 100, 255, cv::THRESH_BINARY_INV);
+        Mat edges, thresh;
+        cv::threshold(grayscale, thresh, 210, 255, cv::THRESH_BINARY);
         showImage("Thresh", thresh, 1);
-        // denoise
-        // this doesn't work at all
-        // cv::fastNlMeansDenoising(thresh, denoised, 9);
-        // this doesn't help
-        // cv::dilate(thresh, denoised, Mat(), Point(-1, -1), 2);
-        // cv::erode(denoised, denoised, Mat(), Point(-1, -1), 2);
-        // showImage("Denoised", denoised, 1);
-        // find lines
-        vector<cv::Vec2f> lines;
-        cv::HoughLines(edges, lines, 1, CV_PI/180, 350, 0, 0 );
-        // draw lines
-        for(auto line : lines) {
-            float rho = line[0], theta = line[1];
-            cv::Point pt1, pt2;
-            double a = cos(theta), b = sin(theta);
-            double x0 = a*rho, y0 = b*rho;
-            pt1.x = cvRound(x0 + 1000*(-b));
-            pt1.y = cvRound(y0 + 1000*(a));
-            pt2.x = cvRound(x0 - 1000*(-b));
-            pt2.y = cvRound(y0 - 1000*(a));
-            cv::line(undistorted, pt1, pt2, cv::Scalar(0,0,255), 3, cv::LINE_AA);
+        cv::morphologyEx(thresh, thresh, cv::MORPH_CLOSE, cv::Mat(6, 6, CV_8UC1, 1));
+        showImage("Denoised", thresh, 1);
+        vector<vector<cv::Point>> contours;
+        cv::findContours(thresh, contours, cv::RetrievalModes::RETR_TREE, cv::ContourApproximationModes::CHAIN_APPROX_SIMPLE);
+        vector<vector<cv::Point>> goodContours;
+        // filter out wrong size ones
+        for (auto cont : contours) {
+            auto area = cv::contourArea(cont);
+            if (area > 1000 && area < 5000) {
+                double minX = 1e200, minY = 1e200, maxX = -1e200, maxY = -1e200;
+                for (auto p : cont) {
+#define MIN(a, b) ((a < b) ? (a) : (b))
+#define MAX(a, b) ((a > b) ? (a) : (b))
+                    minX = MIN(minX, p.x);
+                    minY = MIN(minY, p.y);
+                    maxX = MAX(maxX, p.x);
+                    maxY = MAX(maxY, p.y);
+                }
+                double aspect = (maxY - minY) / (maxX - minX);
+                if (aspect > 2 && aspect < 4) {
+                    goodContours.emplace_back(cont);
+                }
+            }
         }
-        cout << lines.size() << " lines" << endl;
-        showImage("Lines", undistorted, 0);
+        Mat mask = cv::Mat::zeros(cv::Size(grayscale.size[1], grayscale.size[0]), CV_8UC1);
+        cv::drawContours(mask, goodContours, -1, cv::Scalar(255, 255, 255), -1);
+        cv::drawContours(img, goodContours, -1, cv::Scalar(255, 255, 255), 5);
+        Mat labels;
+        img.copyTo(labels, mask);
+        showImage("Labels", labels, 1);
+        //cout << "All: " << contours.size() << "Good: " << goodContours.size() << endl;
+        cv::Canny(labels, edges, 50, 200);
+        showImage("edges", edges, 1);
+        // find lines
+        //vector<cv::Vec2f> lines;
+        //cv::HoughLines(edges, lines, 1, CV_PI/180, 150, 0, 0 );
+        //// draw lines
+        //for(auto line : lines) {
+        //    float rho = line[0], theta = line[1];
+        //    cv::Point pt1, pt2;
+        //    double a = cos(theta), b = sin(theta);
+        //    double x0 = a*rho, y0 = b*rho;
+        //    pt1.x = cvRound(x0 + 1000*(-b));
+        //    pt1.y = cvRound(y0 + 1000*(a));
+        //    pt2.x = cvRound(x0 - 1000*(-b));
+        //    pt2.y = cvRound(y0 - 1000*(a));
+        //    cv::line(img, pt1, pt2, cv::Scalar(0,0,255), 3, cv::LINE_AA);
+        //}
+        //cout << lines.size() << " lines" << endl;
+        showImage("Lines", img, 1);
     }
     return 0;
 }

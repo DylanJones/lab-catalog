@@ -2,17 +2,22 @@ cmake_minimum_required(VERSION 3.9.5)
 project(tracker)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "-O3")
+set(CMAKE_CXX_FLAGS "-O0")
 
 set(PANO_SOURCES
         pano.cpp)
+
+set(STITCHER_SOURCES
+        pano_stitch.cpp)
 
 set(FILTER_SOURCES
         filter.cpp)
 
 find_package(OpenCV REQUIRED)
-add_executable(tracker ${PANO_SOURCES})
+add_executable(pano ${PANO_SOURCES})
 add_executable(filter ${FILTER_SOURCES})
+add_executable(stitcher ${STITCHER_SOURCES})
 
-target_link_libraries(tracker ${OpenCV_LIBS})
+target_link_libraries(pano ${OpenCV_LIBS})
 target_link_libraries(filter ${OpenCV_LIBS})
+target_link_libraries(stitcher ${OpenCV_LIBS})
