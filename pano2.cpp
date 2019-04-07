@@ -19,6 +19,7 @@ using std::cout;
 using std::endl;
 
 void showImage(const std::string &winName, const Mat &image, const int delayMs = 0) {
+    return;
     // make window
     cv::namedWindow(winName, cv::WINDOW_NORMAL);
     // show image
@@ -113,7 +114,9 @@ int main(int argc, char **argv) {
 
     Mat bigImg(img.size[1] * 10, img.size[0], CV_8UC3);
 
+    int i = 0;
     while (video.read(img)) {
+        cout << "FRame " << i++ << endl;
         cv::rotate(img, img, cv::ROTATE_90_CLOCKWISE);
         //gray = extractLabels(img);
         //cv::resize(img, img, cv::Size(img.size[1] / 4, img.size[0] / 4));
@@ -124,12 +127,9 @@ int main(int argc, char **argv) {
         vector<float> err;
         cv::calcOpticalFlowPyrLK(prevGray, gray, prevPoints, points, status, err);
         cv::cornerSubPix(gray, points, cv::Size(10, 10), cv::Size(-1, -1), termcrit);
-        for (auto e : err)
-            cout << int(e) << " ";
-        cout << endl;
 
         for (auto pt : points) {
-            circle(img, pt, 5, cv::Scalar(0, 255, 0), -1);
+            //circle(img, pt, 5, cv::Scalar(0, 255, 0), -1);
         }
 
         showImage("img", img, 1);
@@ -151,7 +151,6 @@ int main(int argc, char **argv) {
         //cv::warpAffine(img, warped, prevTransforms * transform, cv::Size(img.size[1] * 10, img.size[0]));
         //cv::warpAffine(mask, mask, prevTransforms * transform, cv::Size(img.size[1] * 10, img.size[0]));
         Mat homography = cv::findHomography(goodPoints, oldGoodPoints);
-        cout << homography.type() << endl;
         cv::warpPerspective(img, warped, prevTransforms * homography, cv::Size(img.size[1] * 10, img.size[0]));
         cv::warpPerspective(mask, mask, prevTransforms * homography, cv::Size(img.size[1] * 10, img.size[0]));
         cv::erode(mask, mask, Mat::ones(6, 6, CV_8UC1));
