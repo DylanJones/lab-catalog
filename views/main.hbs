@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="css/homepage.css">
+    </head>
+    <body>
+        <div id = "top_div">
+            <div id="top_bar" class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <label class="input-group-text" for="inputGroupSelect01">Search for part</label>
+                  </div>
+            
+              <input type="text" id="input" class="form-control" placeholder="part number" aria-label="placeholder" aria-describedby="basic-addon2" onchange="run()">
+              <div class="input-group-append">
+                <button id="submit" class="btn btn-outline-primary" onclick="run()" type="button">Search!</button>
+              </div>
+              <div class="input-group-append">
+                <button id="clear" class="btn btn-outline-primary" onclick="clear()" type="button">Clear search</button>
+              </div>
+            </div>
+            
+            <p id="output">. . .</p>
+        
+        </div>
+        
+        <div id="content_div">
+            <img id="image" src="https://raw.githubusercontent.com/DylanJones/lab-catalog/master/artisan_pano_smol.png">
+            <canvas id='canvas' width="4020" height="560"></canvas>
+            
+    
+        </div>
+        
+        
+        
+        <script type="text/javascript" src="js/myScript.js"></script>
+        
+        <!--WARNING VERY HACKY PLS FIX-->
+        
+    </body>
+</html>

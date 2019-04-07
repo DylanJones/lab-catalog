@@ -1,0 +1,63 @@
+#image {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: -1;
+    width: 960px;
+    height:540px;
+}
+
+#canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 960px;
+    height:540px;
+}
+
+#content_div {
+    position: absolute;
+  left: 25%;
+  top: 25%;
+  
+    max-width: 100%;
+}
+
+#top_div {
+    /*display: grid;*/
+    margin: 20px;
+    width: 100%;
+    display:inline-block;
+}
+
+#output {
+    text-align: center;
+}
+
+#top_bar {
+    width: 70%;
+    left: 15%;
+    font-size: 16pt;
+}
+
+
+/*.outsideWrapper{ 
+    width:100%; height:100%; 
+    
+    border:1px solid blue;
+    
+}
+.insideWrapper{ 
+    width:100%; height:100%; 
+    position:relative;}
+.coveredImage{ 
+    width:100%; height:100%; 
+    position:absolute; top:0px; left:0px;
+}
+.coveringCanvas{ 
+    width:100%; height:100%; 
+    position:absolute; top:0px; left:0px;
+    background-color: rgba(255,0,0,.1);
+}
+*/
+
