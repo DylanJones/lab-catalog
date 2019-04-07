@@ -41,12 +41,12 @@ void showImage(const std::string &winName, const Mat &image, const int delayMs =
 
 // THIS ONE WORKS!!!!!!
 int main(int argc, char **argv) {
-    std::string filename("filtered.avi");
+    std::string filename("bell.mp4");
     if (argc > 1) {
         filename = argv[1];
     }
     cv::VideoCapture video(filename); // file
-    auto stitcher = cv::Stitcher::create(cv::Stitcher::Mode::PANORAMA);
+    auto stitcher = cv::Stitcher::create(cv::Stitcher::Mode::SCANS);
     Mat img, pano;
     vector<Mat> images;
 

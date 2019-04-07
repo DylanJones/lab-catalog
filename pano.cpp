@@ -41,12 +41,13 @@ void showImage(const std::string &winName, const Mat &image, const int delayMs =
     }
 }
 
-auto getDist(const cv::Point3f &a, const cv::Point3f &b) {
-    return sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2) + pow(a.z - b.z, 2));
-};
-
-// THIS ONE WORKS!!!!!!
 int main(int argc, char **argv) {
+    // Algorithm: 1) Find all the labels and their center coordinates.
+    //            1a) (optional) filter out labels based on if they exist in adjacent frames
+    //            2) Align the labels to a grid.  They should roughly fit based on current x,y.
+    //            3) Construct the theoretical labels based on the rough grid.
+    //            4) Find the homography matrix between the real and theoretical points and warpAffine
+    //               the image into a flat one.
     std::string filename("filtered.avi");
     if (argc > 1) {
         filename = argv[1];
@@ -66,12 +67,13 @@ int main(int argc, char **argv) {
         cv::morphologyEx(thresh, thresh, cv::MORPH_CLOSE, cv::Mat(6, 6, CV_8UC1, 1));
         showImage("Denoised", thresh, 1);
         vector<vector<cv::Point>> contours;
-        cv::findContours(thresh, contours, cv::RetrievalModes::RETR_TREE, cv::ContourApproximationModes::CHAIN_APPROX_SIMPLE);
+        cv::findContours(thresh, contours, cv::RetrievalModes::RETR_TREE,
+                         cv::ContourApproximationModes::CHAIN_APPROX_SIMPLE);
         vector<vector<cv::Point>> goodContours;
         // filter out wrong size ones
         for (auto cont : contours) {
             auto area = cv::contourArea(cont);
-            if (area > 1000 && area < 5000) {
+            if (area > 1000 && area < 3000) {
                 double minX = 1e200, minY = 1e200, maxX = -1e200, maxY = -1e200;
                 for (auto p : cont) {
 #define MIN(a, b) ((a < b) ? (a) : (b))
@@ -93,26 +95,15 @@ int main(int argc, char **argv) {
         Mat labels;
         img.copyTo(labels, mask);
         showImage("Labels", labels, 1);
+        Mat points = Mat::zeros(cv::Size(labels.size[1], labels.size[0]), CV_8UC3);
+        for (auto cont : goodContours) {
+            auto moments = cv::moments(cont, false);
+            cv::circle(points, cv::Point(moments.m10 / moments.m00, moments.m01 / moments.m00), 10,
+                       cv::Scalar(0, 0, 255), 10);
+        }
+        showImage("Points", points, 0);
         //cout << "All: " << contours.size() << "Good: " << goodContours.size() << endl;
-        cv::Canny(labels, edges, 50, 200);
-        showImage("edges", edges, 1);
-        // find lines
-        //vector<cv::Vec2f> lines;
-        //cv::HoughLines(edges, lines, 1, CV_PI/180, 150, 0, 0 );
-        //// draw lines
-        //for(auto line : lines) {
-        //    float rho = line[0], theta = line[1];
-        //    cv::Point pt1, pt2;
-        //    double a = cos(theta), b = sin(theta);
-        //    double x0 = a*rho, y0 = b*rho;
-        //    pt1.x = cvRound(x0 + 1000*(-b));
-        //    pt1.y = cvRound(y0 + 1000*(a));
-        //    pt2.x = cvRound(x0 - 1000*(-b));
-        //    pt2.y = cvRound(y0 - 1000*(a));
-        //    cv::line(img, pt1, pt2, cv::Scalar(0,0,255), 3, cv::LINE_AA);
-        //}
-        //cout << lines.size() << " lines" << endl;
-        showImage("Lines", img, 1);
+
     }
     return 0;
 }
