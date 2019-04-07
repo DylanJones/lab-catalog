@@ -44,8 +44,8 @@ contours = np.asarray(out)
 
 
 ############################### DESIGNED FOR ROTATED IMAGES; CORRECT LATER -> OR NOT
-size = (100, 160)
-hsize = (50, 80)
+size = (160, 100)
+hsize = (80, 50)
 coords = {}
 cropable = Image.open(fil)
 
@@ -64,7 +64,10 @@ for i in range(len(contours)):
     response = client.text_detection(image=image_google)
     text = response.text_annotations
     if len(text) <= 0:
-        continue
+        response = client.document_text_detection(image=image_google)
+        text = response.text_annotations
+        if len(text) <= 0:
+            continue
     text = text[0].description
     text = text.strip().upper().replace(' ', '')
     width = cropable.width
