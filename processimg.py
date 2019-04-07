@@ -67,7 +67,9 @@ for i in range(len(contours)):
         continue
     text = text[0].description
     text = text.strip().upper().replace(' ', '')
-    coords[text] = {'x1': cx - hsize[0], 'y1': cy - hsize[1], 'x2': cx + hsize[0], 'y2': cy + hsize[1]}
+    width = cropable.width
+    height = cropable.height
+    coords[text] = {'x1': (cx - hsize[0]) / width, 'y1': (cy - hsize[1]) / height, 'x2': (cx + hsize[0]) / width, 'y2': (cy + hsize[1]) / height}
 
 with open("coordinate_data.json", "w") as jfile:
     jfile.write(json.dumps(coords))
