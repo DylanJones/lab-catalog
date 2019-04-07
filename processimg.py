@@ -5,6 +5,7 @@ import cv2
 from PIL import Image
 import io
 import os
+import json
 from google.cloud import vision
 from google.cloud.vision import types
 
@@ -61,12 +62,13 @@ for i in range(len(contours)):
         with io.open(file_name, 'rb') as image_file:
             content = image_file.read()
         image_google = types.Image(content=content)
-        response = client.text_detection(image=image)
+        response = client.text_detection(image=image_google)
         text = response.text_annotations[0].description
         text = text.strip().upper().replace(' ', '')
         coords[text] = {'x1': cx - hsize[0], 'y1': cy - hsize[1], 'x2': cx + hsize[0], 'y2': cy + hsize[1]}
 
-
+with open("coordinate_data.json", "w") as jfile:
+    jfile.write(json.dumps(coords))
 
 
 cv2.drawContours(img, contours, -1, (0, 255, 0), 3)
