@@ -61,21 +61,21 @@ for i in range(len(contours)):
     cx = int(mts['m10']/mts['m00'])
     cy = int(mts['m01']/mts['m00'])
     cropable.crop((cx - hsize[0], cy - hsize[1], cx + hsize[0], cy + hsize[1])).save("text1.png")
-#    with io.open(file_name, 'rb') as image_file:
-#        content = image_file.read()
-#    image_google = types.Image(content=content)
-#    response = client.text_detection(image=image_google)
-#    text = response.text_annotations
-#    if len(text) <= 0:
-#        response = client.document_text_detection(image=image_google)
-#        text = response.text_annotations
-#        if len(text) <= 0:
-#            continue
-#    text = text[0].description
-#    text = text.strip().upper().replace(' ', '')
-#    width = cropable.width
-#    height = cropable.height
-#    coords[text] = {'x1': (cx - hsize[0]) / width, 'y1': (cy - hsize[1]) / height, 'x2': (cx + hsize[0]) / width, 'y2': (cy + hsize[1]) / height}
+    with io.open(file_name, 'rb') as image_file:
+        content = image_file.read()
+    image_google = types.Image(content=content)
+    response = client.text_detection(image=image_google)
+    text = response.text_annotations
+    if len(text) <= 0:
+        response = client.document_text_detection(image=image_google)
+        text = response.text_annotations
+        if len(text) <= 0:
+            continue
+    text = text[0].description
+    text = text.strip().upper().replace(' ', '')
+    width = cropable.width
+    height = cropable.height
+    coords[text] = {'x1': (cx - hsize[0]) / width, 'y1': (cy - hsize[1]) / height, 'x2': (cx + hsize[0]) / width, 'y2': (cy + hsize[1]) / height}
 
 with open("coordinate_data.json", "w") as jfile:
     jfile.write(json.dumps(coords))
