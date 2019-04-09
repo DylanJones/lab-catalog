@@ -19,11 +19,13 @@ using std::cout;
 using std::endl;
 
 void showImage(const std::string &winName, const Mat &image, const int delayMs = 0) {
-    return;
+    //return;
     // make window
     cv::namedWindow(winName, cv::WINDOW_NORMAL);
     // show image
-    cv::imshow(winName, image);
+    Mat tmp;
+    cv::resize(image, tmp, cv::Size(image.size[1]/4, image.size[0]/4));
+    cv::imshow(winName, tmp);
     if (delayMs == 0) {
         // pause until spacebar pressed
         int key;
@@ -43,53 +45,12 @@ void showImage(const std::string &winName, const Mat &image, const int delayMs =
     }
 }
 
-Mat extractLabels(Mat img) {
-    Mat grayscale, thresh;
-    cv::cvtColor(img, grayscale, cv::COLOR_BGR2GRAY);
-    cv::threshold(grayscale, thresh, 210, 255, cv::THRESH_BINARY);
-    //showImage("Thresh", thresh, 1);
-    cv::morphologyEx(thresh, thresh, cv::MORPH_CLOSE, cv::Mat(6, 6, CV_8UC1, 1));
-    //showImage("Denoised", thresh, 1);
-    vector<vector<cv::Point>> contours;
-    cv::findContours(thresh, contours, cv::RetrievalModes::RETR_TREE,
-                     cv::ContourApproximationModes::CHAIN_APPROX_SIMPLE);
-    vector<vector<cv::Point>> goodContours;
-    // filter out wrong size ones
-    for (auto cont : contours) {
-        auto area = cv::contourArea(cont);
-        if (area > 1000 && area < 5000) {
-            double minX = 1e200, minY = 1e200, maxX = -1e200, maxY = -1e200;
-            for (auto p : cont) {
-#define MIN(a, b) ((a < b) ? (a) : (b))
-#define MAX(a, b) ((a > b) ? (a) : (b))
-                minX = MIN(minX, p.x);
-                minY = MIN(minY, p.y);
-                maxX = MAX(maxX, p.x);
-                maxY = MAX(maxY, p.y);
-            }
-            double aspect = (maxX - minX) / (maxY - minY);
-            if (aspect > 2 && aspect < 4) {
-                goodContours.emplace_back(cont);
-            }
-        }
-    }
-    Mat mask = cv::Mat::zeros(cv::Size(grayscale.size[1], grayscale.size[0]), CV_8UC1);
-    cv::drawContours(mask, goodContours, -1, cv::Scalar(255, 255, 255), -1);
-    //cv::drawContours(img, goodContours, -1, cv::Scalar(255, 255, 255), 5);
-    Mat labels;
-    img.copyTo(labels, mask);
-    //showImage("Labels", labels, 1);
-    return labels;
-}
-
 int main(int argc, char **argv) {
     ////////////BAD//////////
-    // Algorithm: 1) Find all the gray and their center coordinates.
-    //            1a) (optional) filter out gray based on if they exist in adjacent frames
-    //            2) Align the gray to a grid.  They should roughly fit based on current x,y.
-    //            3) Construct the theoretical gray based on the rough grid.
-    //            4) Find the homography matrix between the real and theoretical points and warpPerspective
-    //               the image into a flat one.
+    // Algorithm: 1) Find all the good features in the first frame, save as the "keyframe".
+    //            2) Track the features to the next frame.  
+    //            3) Find homography between the old points and the new ones, then transform the image to match the plane of the old
+    //            4) If the amount of tracked points is small, reset the tracked points to ones found in this frame and add the current transformation to the accumulated one.
     std::string filename("bell.mp4");
     cv::TermCriteria termcrit(cv::TermCriteria::COUNT | cv::TermCriteria::EPS, 20, 0.03);
     if (argc > 1) {
@@ -116,13 +77,12 @@ int main(int argc, char **argv) {
 
     int i = 0;
     while (video.read(img)) {
-        cout << "FRame " << i++ << endl;
+        cout << "Frame " << i++ << endl;
         cv::rotate(img, img, cv::ROTATE_90_CLOCKWISE);
-        //gray = extractLabels(img);
         //cv::resize(img, img, cv::Size(img.size[1] / 4, img.size[0] / 4));
-        //showImage("Labels", gray, 0);
         // convert to grayscale for better detection
         cv::cvtColor(img, gray, cv::COLOR_BGR2GRAY);
+        showImage("gray", gray, 1);
         vector<uchar> status;
         vector<float> err;
         cv::calcOpticalFlowPyrLK(prevGray, gray, prevPoints, points, status, err);
@@ -145,11 +105,6 @@ int main(int argc, char **argv) {
         }
         Mat warped, mask;
         mask = Mat::ones(img.size[0], img.size[1], CV_8UC1);
-        //Mat transform;
-        //transform = cv::estimateAffine2D(goodPoints, oldGoodPoints);
-        //cout << transform.size[1] << " " << transform.size[0] << endl;
-        //cv::warpAffine(img, warped, prevTransforms * transform, cv::Size(img.size[1] * 10, img.size[0]));
-        //cv::warpAffine(mask, mask, prevTransforms * transform, cv::Size(img.size[1] * 10, img.size[0]));
         Mat homography = cv::findHomography(goodPoints, oldGoodPoints);
         cv::warpPerspective(img, warped, prevTransforms * homography, cv::Size(img.size[1] * 10, img.size[0]));
         cv::warpPerspective(mask, mask, prevTransforms * homography, cv::Size(img.size[1] * 10, img.size[0]));
@@ -173,10 +128,9 @@ int main(int argc, char **argv) {
         int sum = 0;
         for (auto x : status)
             sum += x;
-        if ((float) sum / status.size() < 0.9) { // We're not in kansas anymore
+        if ((float) sum / status.size() < 0.4) { // We're not in kansas anymore
             cv::goodFeaturesToTrack(prevGray, prevPoints, 500, 0.05, 10);
             cv::cornerSubPix(prevGray, prevPoints, cv::Size(10, 10), cv::Size(-1, -1), termcrit);
-            //cv::perspectiveTransform(prevPoints, prevPoints, homography);
             prevTransforms = prevTransforms * homography;
             referencePoints = prevPoints;
         }
