@@ -128,7 +128,7 @@ int main(int argc, char **argv) {
         int sum = 0;
         for (auto x : status)
             sum += x;
-        if ((float) sum / status.size() < 0.4) { // We're not in kansas anymore
+        if ((float) sum / status.size() < 0.9) { // We're not in kansas anymore
             cv::goodFeaturesToTrack(prevGray, prevPoints, 500, 0.05, 10);
             cv::cornerSubPix(prevGray, prevPoints, cv::Size(10, 10), cv::Size(-1, -1), termcrit);
             prevTransforms = prevTransforms * homography;
