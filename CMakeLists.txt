@@ -10,6 +10,9 @@ set(PANO_SOURCES
 set(PANO2_SOURCES
         pano2.cpp)
 
+set(PANO_ORB_SOURCES
+        pano_orb.cpp)
+
 set(STITCHER_SOURCES
         pano_stitch.cpp)
 
@@ -19,10 +22,12 @@ set(FILTER_SOURCES
 find_package(OpenCV REQUIRED)
 add_executable(pano ${PANO_SOURCES})
 add_executable(pano2 ${PANO2_SOURCES})
+add_executable(pano_orb ${PANO_ORB_SOURCES})
 add_executable(filter ${FILTER_SOURCES})
 add_executable(stitcher ${STITCHER_SOURCES})
 
 target_link_libraries(pano ${OpenCV_LIBS})
 target_link_libraries(pano2 ${OpenCV_LIBS})
+target_link_libraries(pano_orb ${OpenCV_LIBS})
 target_link_libraries(filter ${OpenCV_LIBS})
 target_link_libraries(stitcher ${OpenCV_LIBS})

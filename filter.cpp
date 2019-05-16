@@ -42,7 +42,7 @@ void showImage(const std::string &winName, const Mat &image, const int delayMs =
 }
 
 int main(int argc, char **argv) {
-    std::string filename("bell.mp4");
+    std::string filename("shelves.MOV");
     if (argc > 1) {
         filename = argv[1];
     }
@@ -59,6 +59,7 @@ int main(int argc, char **argv) {
     cv::VideoWriter out;
 
     Mat img, distorted;
+    int i = 0;
 
     while (video.read(img)) {
         if (!out.isOpened()) {
@@ -74,11 +75,12 @@ int main(int argc, char **argv) {
         cv::Scalar mean, stddev; // 0:1st channel, 1:2nd channel and 2:3rd channel
         meanStdDev(distorted, mean, stddev, Mat());
         double variance = stddev.val[0] * stddev.val[0];
-        if (variance > threshold) {
-            out.write(img);
-            cout << "Variance: " << variance << endl;
+        cout << i << "," << variance << endl;
             showImage("original", img, 1);
+        if (variance > threshold) {
+//            out.write(img);
         }
+        i++;
     }
     return 0;
 }
